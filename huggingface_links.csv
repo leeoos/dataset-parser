@@ -1,0 +1,80 @@
+Sheet Name,Dataset,Link
+NER,wikineural ,https://huggingface.co/datasets/Babelscape/wikineural
+NER,nermud,https://huggingface.co/datasets/sapienzanlp/nermud
+NER,wikiann,https://huggingface.co/datasets/unimelb-nlp/wikiann
+NER,multiconer,https://huggingface.co/datasets/MultiCoNER/multiconer_v2
+NER,psynit,https://huggingface.co/datasets/IVN-RIN/PsyNIT
+NER,gliner,https://huggingface.co/datasets/DeepMount00/GLINER_ITA
+NER,pii-masking,https://huggingface.co/datasets/DeepMount00/pii-masking-ita
+NER,eventnet,https://huggingface.co/datasets/mrovera/eventnet-ita
+NER,xtreme,https://huggingface.co/datasets/google/xtreme
+MT,tatoeba,https://huggingface.co/datasets/Helsinki-NLP/tatoeba
+MT,flores,https://huggingface.co/datasets/facebook/flores
+MT,divemt,https://huggingface.co/datasets/GroNLP/divemt
+MT,polynews,https://huggingface.co/datasets/aiana94/polynews-parallel
+TS,ilpost,https://huggingface.co/datasets/ARTeLab/ilpost
+TS,mlsum-it,https://huggingface.co/datasets/ARTeLab/mlsum-it
+TS,fanpage,https://huggingface.co/datasets/ARTeLab/fanpage
+TS,ita-casehold,https://huggingface.co/datasets/itacasehold/itacasehold
+WSD,wic-ita,https://huggingface.co/datasets/sapienzanlp/wic
+QA,stackoverflow,https://huggingface.co/datasets/andreabac3/StackOverflow-Italian-Fauno-Baize?row=1
+QA,squad_it,https://huggingface.co/datasets/crux82/squad_it
+QA,piqa,https://huggingface.co/datasets/sapienzanlp/piqa_italian
+QA,mmlu,https://huggingface.co/datasets/sapienzanlp/mmlu_italian
+QA,truthfulqa,https://huggingface.co/datasets/sapienzanlp/truthful_qa_italian
+QA,gsm8k,https://huggingface.co/datasets/sapienzanlp/gsm8k_italian?row=0
+QA,arc,https://huggingface.co/datasets/sapienzanlp/arc_italian?row=0
+QA,quandho,https://huggingface.co/datasets/sapienzanlp/quandho
+QA,sciq,https://huggingface.co/datasets/sapienzanlp/sciq_italian
+QA,boolq ,https://huggingface.co/datasets/sapienzanlp/boolq_italian?row=81
+QA,qg_itquad,https://huggingface.co/datasets/lmqg/qg_itquad
+QA,dlgs_81_08_qa ,https://huggingface.co/datasets/alespalla/dlgs_81_08_qa
+QA,shp,https://huggingface.co/datasets/efederici/shp-partial-it?row=1
+QA,miracl_ita,https://huggingface.co/datasets/yurinoviello/miracl_ita
+QA,quora,https://huggingface.co/datasets/andreabac3/Quora-Italian-Fauno-Baize
+QA,sft-ready-ultrafeedback-ita,https://huggingface.co/datasets/giux78/100k-sft-ready-ultrafeedback-ita
+QA,lfqa-preprocessed-it,https://huggingface.co/datasets/efederici/lfqa-preprocessed-it
+QA,test-medicina,https://huggingface.co/datasets/room-b007/test-medicina
+QA,quiz_militare,https://huggingface.co/datasets/FinancialSupport/quiz_militare
+QA,mmlu,https://huggingface.co/datasets/DeepMount00/mmlu_it_open
+QA,farytale-qa,https://huggingface.co/datasets/benjleite/FairytaleQA-translated-italian
+QA,motherpediatricianqa,https://huggingface.co/datasets/GianlucaMondillo/MotherPediatricianQA_ITA
+QA,psycology-dataset,https://huggingface.co/datasets/WasamiKirua/psycology-dataset-ita
+QA,medmcqa-ita,https://huggingface.co/datasets/Detsutut/medmcqa-ita
+QA,fisica,https://huggingface.co/datasets/efederici/fisica
+QA,biologia-mc,https://huggingface.co/datasets/efederici/biologia-mc
+QA,wikipedia-it,https://huggingface.co/datasets/ReDiX/wikipediaQA-ita
+QA,argilla-math-preferences-it,https://huggingface.co/datasets/mii-llm/argilla-math-preferences-it
+CoR,winogrande,https://huggingface.co/datasets/sapienzanlp/winogrande_italian?row=7
+CoR,pretens,https://huggingface.co/datasets/sapienzanlp/pretens
+CoR,discotex,https://huggingface.co/datasets/sapienzanlp/discotex
+CoR,farytale-qa,https://huggingface.co/datasets/benjleite/FairytaleQA-translated-italian
+CR,piqa,https://huggingface.co/datasets/sapienzanlp/piqa_italian
+CR,prelearn,https://huggingface.co/datasets/sapienzanlp/prelearn
+CR,hellaswag ,https://huggingface.co/datasets/sapienzanlp/hellaswag_italian?row=0
+CR,openorca ita,https://huggingface.co/datasets/raicrits/Orca_ITA_200k
+CR,rai-cmm-open1,https://huggingface.co/datasets/raicrits/RAI-CMM-OPEN1
+CR,lfqa-preprocessed-it,https://huggingface.co/datasets/efederici/lfqa-preprocessed-it
+CR,drop,https://huggingface.co/datasets/swap-uniba/drop_ita
+CR,cruciverba,https://huggingface.co/datasets/mii-llm/cruciverba
+CR,capibara-claude,https://huggingface.co/datasets/efederici/capybara-claude-15k-ita
+CR,aya,https://huggingface.co/datasets/giux78/aya_dataset_ita
+CR,ita_cw,https://huggingface.co/datasets/Kamyar-zeinalipour/ITA_CW
+GEC,icola,https://huggingface.co/datasets/gsarti/itacola
+TRS,tapaco,https://huggingface.co/datasets/community-datasets/tapaco
+TRS,stsb,https://huggingface.co/datasets/PhilipMay/stsb_multi_mt
+TRS,change-it,https://huggingface.co/datasets/gsarti/change_it
+TRS,ita2medieval,https://huggingface.co/datasets/leobertolazzi/ita2medieval 
+TRS,shp,https://huggingface.co/datasets/efederici/shp-partial-it?row=1
+WRITING,camoscio,https://huggingface.co/datasets/teelinsan/camoscio?row=3
+WRITING,stambecco,https://huggingface.co/datasets/mchl-labs/stambecco_data_it
+WRITING,alpaca gpt4,https://huggingface.co/datasets/efederici/alpaca-gpt4-it
+WRITING,wikipedia_it,https://huggingface.co/datasets/amitness/wikipedia_it
+WRITING,loquace-102k,https://huggingface.co/datasets/cosimoiaia/Loquace-102k
+WRITING,medquaad-it,https://huggingface.co/datasets/andreabac3/MedQuaAD-Italian-Fauno-Baize
+WRITING,seeweb-it,https://huggingface.co/datasets/seeweb/Seeweb-it-292-forLLM
+WRITING,camoscio_cleaned,https://huggingface.co/datasets/teelinsan/camoscio_cleaned
+WRITING,italian_civil_code,https://huggingface.co/datasets/AndreaSimeri/Italian_Civil_Code
+WRITING,italian-pd,https://huggingface.co/datasets/PleIAs/Italian-PD
+WRITING,tagengo,https://huggingface.co/datasets/RiTA-nlp/tagengo-gpt4-italian
+WRITING,usenet archive it ,https://huggingface.co/datasets/mii-community/UsenetArchiveIT-conversations

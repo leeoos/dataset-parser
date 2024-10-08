@@ -1,7 +1,10 @@
 import os
 import re
-import argparse
+import csv
+import tqdm
+import time
 import logging
+import argparse
 from datasets import (
     load_dataset,
     load_dataset_builder,
@@ -11,105 +14,90 @@ from datasets import (
 #import processor  
 
 # Logger
+os.makedirs('logs', exist_ok=True)
 logger = logging.getLogger(__name__)
 logging.basicConfig(filename='logs/main.log', encoding='utf-8', level=logging.DEBUG, filemode='w')
 
 # Path to the dataset list
-DATASETS_LIST_PATH = "filtered_links.csv"
+DATASETS_LIST_PATH = "huggingface_links.csv"
 OUTPUT_DIR = "output"
 LOCAL_CACHE = "local_cache"
-
-
-def extract_configs(message):
-
-    # Use regular expression to find the part inside square brackets
-    config_list = re.findall(r"'([^']*it[^']*)'", message)
-    if config_list:
-        return config_list  # Return the list with 'it' matches
-    else:
-        # If no matches containing 'it', return all configs
-        config_list = re.findall(r"\['(.*?)'\]", message)
-        return config_list
+DATASET_INFO = "dataset_info"
 
 
 def download_hf_datasets(hf_link, save_path='./'):
     datasets = []
 
     # Get the configurations for the dataset
-    configs = get_dataset_config_names(hf_link)
-    logger.info(f"Available configurations: {configs}")
-
-    # Download dataset
     try:
-        print("Downloading datasets...")
-        for config in configs:
-            datasets.append(load_dataset(hf_link,  config, cache_dir=save_path))
-        return datasets
-    
+        configs = get_dataset_config_names(hf_link)
+        filgtered_configs = list(filter(lambda x: 'it' in x.lower(), configs))
+        configs = filgtered_configs if filgtered_configs != [] else configs
+        logger.info(f"Dataset: {hf_link}\tAvailable configurations: {configs}")
+        
+        # Download dataset
+        try:
+            for config in configs:
+                datasets.append(load_dataset(hf_link,  config, cache_dir=save_path))
+            return datasets
+        
+        except Exception as e:
+            logger.debug(f"Failed to load dataset {hf_link}: {e}")
+            return None
+        
     except Exception as e:
-        logger.debug(f"Failed to load dataset {hf_link}: {e}")
+        logger.debug(f"Failed to load informations for  {hf_link}: {e}")
         return None
 
-
 def process_hf_datasets(name=None, task=None):
+    acquired_datasets = []
 
     # Read the dataset list
+    print("Retriving datasets...")
+    start_time = time.time() 
     with open(DATASETS_LIST_PATH, "r") as file:
-        datasets_list = [line.strip() for line in file if line.strip()]
+        # datasets_list = [line.strip() for line in file if line.strip()]
+        datasets_list = csv.reader(file)
+        next(datasets_list, None)
 
-    # Iterate over datasets
-    first_seen = True
-    for idx, dataset in enumerate(datasets_list):
-        dataset = dataset.split(',')
-        task_type = dataset[0]
-        
-        if task_type != task:
-            if not first_seen: break
-            pass
+        # Iterate over datasets
+        first_seen = True
+        for idx, selected_dataset in enumerate(datasets_list):
+            task_type = selected_dataset[0]
+            dataset_name = selected_dataset[1]
+            dataset_link = selected_dataset[2].split("datasets/")[-1]
+            print(f"{dataset_link}...", end='\t\t')
+            
+            if task_type != task:
+                if not first_seen: break
+                pass
+            else:
+                first_seen = False
 
-        else:
-            first_seen = False
-            dataset_name = dataset[1].split("datasets/")[-1]
+                if name and dataset_name == name:
+                    logger.info(f"Selected dataset: {dataset_name}\tindex: {idx}")
+                    acquired_datasets.append(download_hf_datasets(dataset_link, save_path=LOCAL_CACHE))
+                    if acquired_datasets: 
+                        logger.info(f"{dataset_name} status: Downloaded")
+                        print("ok")
+                    else:
+                        print("fail")
+                    break
 
-            if name and dataset_name.split('/')[1] == name:
-                logger.info(f"Selected dataset --> {dataset_name}\tindex --> {idx}")
-                acquired_datasets = download_hf_datasets(dataset_name, save_path=LOCAL_CACHE)
-                if acquired_datasets: logger.info(f"{dataset_name} --> Downloaded")
+                if not name:           
+                    logger.info(f"Selected dataset: {dataset_name}\tindex: {idx}")
+                    acquired_datasets.append(download_hf_datasets(dataset_link, save_path=LOCAL_CACHE))
+                    if acquired_datasets: print("ok")
+                    else: print("fail")
 
-                
-
-                break
-
-            if not name: 
-                # Do not break
-                save_path = LOCAL_CACHE + "/" + args.name
-                if os.path.exists(save_path) and os.listdir(save_path) is not []:
-                    ...
-                else:
-                    logger.info(f"Selected dataset --> {dataset_name}\tindex --> {idx}")
-                    acquired_datasets = download_hf_datasets(dataset_name, save_path=LOCAL_CACHE)
-
-            # logger.info(f"{idx} - Processing dataset: {dataset_name}")
-
-#         # Apply custom processing (defined in processor.py)
-#         processed_data = processor.process_dataset(dataset)
-#
-#         # Save the processed dataset to CSV or other formats
-#         save_processed_dataset(dataset_name, processed_data)
-
-
-def save_processed_dataset(dataset_name, processed_data):
-    # Define the path to save the processed dataset
-    output_path = os.path.join(OUTPUT_DIR, f"{dataset_name.replace('/', '_')}_processed.csv")
-
-    # Assume processed_data is a pandas DataFrame or similar
-    processed_data.to_csv(output_path, index=False)
-    print(f"Processed dataset saved to {output_path}")
+    print("\n--- %s seconds ---" % (time.time() - start_time))
+    logger.info("execution time: %s seconds " % (time.time() - start_time))
+    return acquired_datasets
 
 
 if __name__ == "__main__":
 
-    # Parse script args
+    # Parse script argsreader
     parser = argparse.ArgumentParser(
         prog='Main',
         description='Select different types of datasets to parse for instruction tuning of minerva'
@@ -117,7 +105,7 @@ if __name__ == "__main__":
 
     parser.add_argument('-n', '--name', type=str, help='insert the name of the datasetto parse')
     parser.add_argument('-e', '--extension', type=str, help='insert the format extension of the dataset to parse')
-    parser.add_argument('-t', '--task', type=str, help='insert the name of the task')
+    parser.add_argument('-t', '--task', type=str, help='insert the name of the task', required=True)
     parser.add_argument('-hf', '--huggingface', action='store_true')
     parser.add_argument('-l', '--local', action='store_true')
     
@@ -131,9 +119,14 @@ if __name__ == "__main__":
 
     os.makedirs(OUTPUT_DIR, exist_ok=True)
     os.makedirs(LOCAL_CACHE, exist_ok=True)
+    os.makedirs(DATASET_INFO, exist_ok=True)
+
+    # Setup task info
+    if args.task.upper() == "NER":
+        info_file = DATASET_INFO + "/" + "ner_tags"
 
     if args.huggingface:
-        process_hf_datasets(name=args.name, task=args.task)
+        dataset = process_hf_datasets(name=args.name, task=args.task)
 
     elif args.local:
         ...
