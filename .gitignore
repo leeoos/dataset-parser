@@ -1,0 +1,6 @@
+# Project log
+logs/
+output/
+local_cache/
+
+*:Zone.Identifier
