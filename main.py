@@ -11,7 +11,7 @@ from datasets import (
     get_dataset_config_names
 )
 #import pandas as pd
-#import processor  
+import processor  
 
 # Logger
 os.makedirs('logs', exist_ok=True)
@@ -22,7 +22,7 @@ logging.basicConfig(filename='logs/main.log', encoding='utf-8', level=logging.DE
 DATASETS_LIST_PATH = "huggingface_links.csv"
 OUTPUT_DIR = "output"
 LOCAL_CACHE = "local_cache"
-DATASET_INFO = "dataset_info"
+TASK_INFO = "dataset_info"
 
 
 def download_hf_datasets(hf_link, save_path='./'):
@@ -30,24 +30,24 @@ def download_hf_datasets(hf_link, save_path='./'):
 
     # Get the configurations for the dataset
     try:
-        configs = get_dataset_config_names(hf_link)
+        configs = get_dataset_config_names(hf_link, )
         filgtered_configs = list(filter(lambda x: 'it' in x.lower(), configs))
         configs = filgtered_configs if filgtered_configs != [] else configs
         logger.info(f"Dataset: {hf_link}\tAvailable configurations: {configs}")
         
         # Download dataset
         try:
-            for config in configs:
-                datasets.append(load_dataset(hf_link,  config, cache_dir=save_path))
+            datasets = [load_dataset(hf_link,  config, cache_dir=save_path) for config in configs]
             return datasets
         
         except Exception as e:
             logger.debug(f"Failed to load dataset {hf_link}: {e}")
-            return None
+            return datasets
         
     except Exception as e:
         logger.debug(f"Failed to load informations for  {hf_link}: {e}")
-        return None
+        return datasets
+
 
 def process_hf_datasets(name=None, task=None):
     acquired_datasets = []
@@ -56,9 +56,8 @@ def process_hf_datasets(name=None, task=None):
     print("Retriving datasets...")
     start_time = time.time() 
     with open(DATASETS_LIST_PATH, "r") as file:
-        # datasets_list = [line.strip() for line in file if line.strip()]
         datasets_list = csv.reader(file)
-        next(datasets_list, None)
+        next(datasets_list, None) # skip header
 
         # Iterate over datasets
         first_seen = True
@@ -66,8 +65,9 @@ def process_hf_datasets(name=None, task=None):
             task_type = selected_dataset[0]
             dataset_name = selected_dataset[1]
             dataset_link = selected_dataset[2].split("datasets/")[-1]
-            print(f"{dataset_link}...", end='\t\t')
-            
+            save_path = LOCAL_CACHE + "/" + dataset_name
+            os.makedirs(save_path, exist_ok=True)
+
             if task_type != task:
                 if not first_seen: break
                 pass
@@ -75,23 +75,47 @@ def process_hf_datasets(name=None, task=None):
                 first_seen = False
 
                 if name and dataset_name == name:
+                    print(f"{dataset_name}...", end='\t\t')
+
+                    # skip already processed dataset
+                    if (os.listdir(save_path) != []): 
+                        print("ok")
+                        continue
+
                     logger.info(f"Selected dataset: {dataset_name}\tindex: {idx}")
-                    acquired_datasets.append(download_hf_datasets(dataset_link, save_path=LOCAL_CACHE))
+                    acquired_dataset = download_hf_datasets(dataset_link, save_path=save_path)
+
                     if acquired_datasets: 
                         logger.info(f"{dataset_name} status: Downloaded")
+                        acquired_datasets.append(acquired_dataset)
                         print("ok")
                     else:
                         print("fail")
                     break
 
-                if not name:           
+                elif not name:   
+                    print(f"{dataset_name}...", end='\t\t')
+
+                    # skip already processed dataset
+                    if (os.listdir(save_path) != []): 
+                        print("using cache... \tok")
+                        continue    
+
                     logger.info(f"Selected dataset: {dataset_name}\tindex: {idx}")
-                    acquired_datasets.append(download_hf_datasets(dataset_link, save_path=LOCAL_CACHE))
-                    if acquired_datasets: print("ok")
-                    else: print("fail")
+                    acquired_dataset = download_hf_datasets(dataset_link, save_path=save_path)
+                    
+                    if acquired_datasets: 
+                        acquired_datasets.append(acquired_dataset)
+                        print("ok")
+                    else: 
+                        print("fail")
 
     print("\n--- %s seconds ---" % (time.time() - start_time))
     logger.info("execution time: %s seconds " % (time.time() - start_time))
+
+    for dataset in acquired_datasets:
+        processor.format(dataset, TASK_INFO)
+
     return acquired_datasets
 
 
@@ -119,11 +143,11 @@ if __name__ == "__main__":
 
     os.makedirs(OUTPUT_DIR, exist_ok=True)
     os.makedirs(LOCAL_CACHE, exist_ok=True)
-    os.makedirs(DATASET_INFO, exist_ok=True)
+    os.makedirs(TASK_INFO, exist_ok=True)
 
     # Setup task info
     if args.task.upper() == "NER":
-        info_file = DATASET_INFO + "/" + "ner_tags"
+        info_file = TASK_INFO + "/" + "ner_tags"
 
     if args.huggingface:
         dataset = process_hf_datasets(name=args.name, task=args.task)

@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-
 # general imports 
 import os
 import sys
@@ -15,7 +14,8 @@ import pandas as pd
 import numpy as np
 
 
-
+def format(dataset, dataset_info=None): 
+  ...
 
 def move_data(data, dest="results"):
   """Just to move the final dtaset in the destination folder and once again avoid pushing large files."""
