@@ -9,6 +9,7 @@ import argparse
 import numpy as np
 from datasets import (
     load_dataset, 
+    load_from_disk,
     load_dataset_builder, 
     get_dataset_config_names
 )
@@ -30,12 +31,12 @@ logger = logging.getLogger(__name__)
 DATASETS_LIST_PATH = "huggingface_links.csv"
 OUTPUT_DIR = "output"
 LOCAL_CACHE = "local_cache"
+LOCAL_DATA = "local_data"
 TASK_INFO = "dataset_info"
 DATASET_DICTIONAY = {}
 
-# ~ (.+):([0-9]+):([0-9]+) 
-
-def download_hf_datasets(hf_link, save_path="./"):
+# Download data from huggingface repo
+def download_hf_datasets(name, hf_link, save_path="./", cache_path="./"):
 
     # Get the configurations for the dataset
     datasets = {}
@@ -47,9 +48,10 @@ def download_hf_datasets(hf_link, save_path="./"):
         configs = filgtered_configs if filgtered_configs != [] else configs
         logger.info(f"Dataset: {hf_link}\tAvailable configurations: {configs}")
 
+        # Save configurations
         configs = np.array(configs)
         np.savez(save_path + "/configs", configs)
-
+        np.savez(cache_path + "/configs", configs)
             
         # Download dataset
         try:
@@ -58,10 +60,16 @@ def download_hf_datasets(hf_link, save_path="./"):
                 config: load_dataset(
                     hf_link, 
                     config, 
-                    cache_dir=save_path
+                    cache_dir=cache_path
                 ) 
                 for config in configs
             }
+
+            # Save Data
+            logger.info(f"Saving data in : {save_path}")
+            for key, value in datasets.items():
+                value.save_to_disk(save_path + "/" + key)
+
             return datasets
 
         except Exception as e:
@@ -73,7 +81,8 @@ def download_hf_datasets(hf_link, save_path="./"):
         return datasets
 
 
-def load_hf_dataset_from_cache(hf_link, save_path):
+# Load data from local directory
+def load_hf_dataset_from_local(name, save_path):
     
     configs = np.load(save_path + "/configs.npz")['arr_0']
     logger.info(f"Loading data from: {save_path} using: {configs}")
@@ -82,10 +91,30 @@ def load_hf_dataset_from_cache(hf_link, save_path):
     datasets = {}
     try:
         datasets = {
+            config: load_from_disk(save_path + "/" + config)            
+            for config in configs
+        }
+        return datasets
+
+    except Exception as e:
+        logger.debug(f"Failed to load dataset {name}: {e}")
+        return datasets  
+
+
+# Load data from cache directory
+def load_hf_dataset_from_cache(hf_link, cache_path):
+    
+    configs = np.load(cache_path + "/configs.npz")['arr_0']
+    logger.info(f"Loading data from: {cache_path} using: {configs}")
+    
+    # Load dataset
+    datasets = {}
+    try:
+        datasets = {
             config: load_dataset(
                 hf_link,
                 config,
-                cache_dir=save_path,
+                cache_dir=cache_path,
                 download_mode="reuse_dataset_if_exists"
             )            
             for config in configs
@@ -96,7 +125,7 @@ def load_hf_dataset_from_cache(hf_link, save_path):
         logger.debug(f"Failed to load dataset {hf_link}: {e}")
         return datasets  
 
-
+# Collect datasets into a global dictionary
 def add_dataset_to_dictionary(dataset, dataset_name):
     
     logger.info(f"dataset loaded: {dataset != {}}")
@@ -107,6 +136,7 @@ def add_dataset_to_dictionary(dataset, dataset_name):
         print("fail")
 
 
+# Acquire and process Hugging face datasets
 def process_hf_datasets(name=None, task=None):
 
     # Read the dataset list
@@ -120,38 +150,49 @@ def process_hf_datasets(name=None, task=None):
         # Iterate over datasets
         first_seen_task = True
         for idx, selected_dataset in enumerate(datasets_list):
-            task_type = selected_dataset[0]
-            dataset_name = selected_dataset[1]
-            dataset_link = selected_dataset[2].split("datasets/")[-1]
-            save_path = LOCAL_CACHE + "/" + dataset_name
-
+            
             # Skip all unwated datasets
+            task_type = selected_dataset[0]
             if task_type != task and not first_seen_task: break
             if task_type != task: continue
+            
+            # Get dataset informations
+            dataset_name = selected_dataset[1]
+            dataset_link = selected_dataset[2].split("datasets/")[-1]
+            cache_path = LOCAL_CACHE + "/" + dataset_name
+            save_path = LOCAL_DATA + "/" + dataset_name
+
+            # Select specific dataset
             if name and dataset_name != name: continue
             first_seen_task = False
 
             os.makedirs(save_path, exist_ok=True)
+            os.makedirs(cache_path, exist_ok=True)
             print(f"{dataset_name}...", end='\t\t')
 
-            # Skip already processed dataset
             if os.listdir(save_path) != []:
-                
-                # Here load dataset from save_path
-                dataset = load_hf_dataset_from_cache(dataset_link, save_path)
-                print("using cache..." , end='\t\t')
-                add_dataset_to_dictionary(dataset, dataset_name)
-                continue
+                # Load dataset from save_path
+                dataset = load_hf_dataset_from_local(dataset_name, save_path)
+                print("using local..." , end='\t\t')
 
-            dataset = download_hf_datasets(
-                dataset_link, 
-                save_path=save_path
-            )
+            elif os.listdir(cache_path) != []:
+                # Load dataset from cache_path
+                dataset = load_hf_dataset_from_cache(dataset_link, cache_path)
+                print("using cache..." , end='\t\t')
+
+            else:
+                # Download dataset from repo
+                dataset = download_hf_datasets(
+                    dataset_name,
+                    dataset_link, 
+                    save_path,
+                    cache_path
+                )
+                logger.info(f"{dataset_name} status: Downloaded")
+
             add_dataset_to_dictionary(dataset, dataset_name)
-            logger.info(f"{dataset_name} status: Downloaded")
             
             if name and dataset_name == name: break
-
 
 
     print("\n--- %s seconds ---" % (time.time() - start_time))
@@ -159,9 +200,13 @@ def process_hf_datasets(name=None, task=None):
 
     print("Formatting acquired datasets...")
     for name, dataset in DATASET_DICTIONAY.items():
-        ...
-        # ~ print(f"{name}: {dataset}")
-        # ~ format(dataset, task, TASK_INFO)
+        format(
+            dataset, 
+            name, 
+            task, 
+            TASK_INFO, 
+            logger
+        )
 
 
 if __name__ == "__main__":
@@ -193,16 +238,19 @@ if __name__ == "__main__":
     if args.task:
         OUTPUT_DIR += "/" + args.task
         LOCAL_CACHE += "/" + args.task
+        LOCAL_DATA += "/" + args.task
+
     if args.name:
         OUTPUT_DIR += "/" + args.name
 
     os.makedirs(OUTPUT_DIR, exist_ok=True)
     os.makedirs(LOCAL_CACHE, exist_ok=True)
-    os.makedirs(TASK_INFO, exist_ok=True)
+    os.makedirs(LOCAL_DATA, exist_ok=True)
 
     # Setup task info
     if args.task.upper() == "NER":
-        info_file = TASK_INFO + "/" + "ner_tags"
+        TASK_INFO = TASK_INFO + "/" + "ner"
+        os.makedirs(TASK_INFO, exist_ok=True)
 
     if args.huggingface:
         dataset = process_hf_datasets(name=args.name, task=args.task)

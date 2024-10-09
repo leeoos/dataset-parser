@@ -1,6 +1,7 @@
 # Project ignores
 logs/
 local_cache/
+local_data/
 *:Zone.Identifier
 *.geany
 

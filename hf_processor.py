@@ -6,7 +6,6 @@ import sys
 import shutil
 import argparse
 import logging
-# from git import Repo
 
 # data manipulations
 import json
@@ -14,22 +13,19 @@ import csv
 import pandas as pd
 import numpy as np
 
-
 def format(dataset, name, task, task_info=None, logger=None):
     # Select the appropriate task
-    print(task)
-    logger.info(f"Processing dataset for task {task.upper()}")
+    logger.info(f"Processing dataset: {name} \tTask: {task.upper()}")
     if task.upper() == "NER":
-        logger.info(f"Processing dataset for task {task.upper()}")
-        format_ner(dataset, name, task_info)
+        format_ner(dataset, name, task_info + "/" + task.lower() + ".json")
         
 
 def format_ner(dataset, name, task_info):
-    data = {}
+    info = {}
     with open(task_info, "r") as file:
-        data = json.load(file)
+        info = json.load(file)
 
-    tags = data[name]["tags"]
+    tags = info[name]["tags"]
 
     print(tags)
     print(dataset)
