@@ -1,6 +1,7 @@
 import os
 import re
 import csv
+import json
 import tqdm
 import time
 import logging
@@ -30,12 +31,14 @@ DATASETS_LIST_PATH = "huggingface_links.csv"
 OUTPUT_DIR = "output"
 LOCAL_CACHE = "local_cache"
 TASK_INFO = "dataset_info"
+DATASET_DICTIONAY = {}
 
+# ~ (.+):([0-9]+):([0-9]+) 
 
 def download_hf_datasets(hf_link, save_path="./"):
-    datasets = []
 
     # Get the configurations for the dataset
+    datasets = {}
     try:
         configs = get_dataset_config_names(
             hf_link,
@@ -50,9 +53,15 @@ def download_hf_datasets(hf_link, save_path="./"):
             
         # Download dataset
         try:
-            datasets = [
-                load_dataset(hf_link, config, cache_dir=save_path) for config in configs
-            ]
+            print()
+            datasets = {
+                config: load_dataset(
+                    hf_link, 
+                    config, 
+                    cache_dir=save_path
+                ) 
+                for config in configs
+            }
             return datasets
 
         except Exception as e:
@@ -70,17 +79,17 @@ def load_hf_dataset_from_cache(hf_link, save_path):
     logger.info(f"Loading data from: {save_path} using: {configs}")
     
     # Load dataset
-    datasets =[]
+    datasets = {}
     try:
-        datasets = [
-             load_dataset(
+        datasets = {
+            config: load_dataset(
                 hf_link,
                 config,
                 cache_dir=save_path,
                 download_mode="reuse_dataset_if_exists"
             )            
             for config in configs
-        ]
+        }
         return datasets
 
     except Exception as e:
@@ -88,19 +97,17 @@ def load_hf_dataset_from_cache(hf_link, save_path):
         return datasets  
 
 
-def add_dataset_to_acquired(dataset, acquired_datasets):
+def add_dataset_to_dictionary(dataset, dataset_name):
     
-    logger.info(f"dataset: {dataset}")
-    
+    logger.info(f"dataset loaded: {dataset != {}}")
     if dataset:
-        acquired_datasets.append(dataset)
+        DATASET_DICTIONAY[dataset_name] = dataset
         print("ok")
     else:
         print("fail")
 
 
 def process_hf_datasets(name=None, task=None):
-    acquired_datasets = []
 
     # Read the dataset list
     print("Retriving datasets...")
@@ -117,39 +124,33 @@ def process_hf_datasets(name=None, task=None):
             dataset_name = selected_dataset[1]
             dataset_link = selected_dataset[2].split("datasets/")[-1]
             save_path = LOCAL_CACHE + "/" + dataset_name
+
+            # Skip all unwated datasets
+            if task_type != task and not first_seen_task: break
+            if task_type != task: continue
+            if name and dataset_name != name: continue
+            first_seen_task = False
+
             os.makedirs(save_path, exist_ok=True)
+            print(f"{dataset_name}...", end='\t\t')
 
-            if task_type != task:
-                if not first_seen_task: break
-                pass
+            # Skip already processed dataset
+            if os.listdir(save_path) != []:
                 
-            else:
-                first_seen_task = False
+                # Here load dataset from save_path
+                dataset = load_hf_dataset_from_cache(dataset_link, save_path)
+                print("using cache..." , end='\t\t')
+                add_dataset_to_dictionary(dataset, dataset_name)
+                continue
 
-                if name and dataset_name != name: continue
-
-                print(f"{dataset_name}...", end="\t\t")
-
-                # Skip already processed dataset
-                if os.listdir(save_path) != []:
-                    
-                    # Here load dataset from save_path
-                    dataset = load_hf_dataset_from_cache(dataset_link, save_path)
-                    
-                    print("using cache...", end="\t\t")
-                    add_dataset_to_acquired(dataset, acquired_datasets)
-                    continue
-
-                logger.info(f"Selected dataset: {dataset_name}\tindex: {idx}")
-                dataset = download_hf_datasets(
-                    dataset_link, 
-                    save_path=save_path
-                )
-                logger.info(f"acquired dataset: {dataset}")
-                add_dataset_to_acquired(dataset, acquired_datasets)
-                logger.info(f"{dataset_name} status: Downloaded")
-                
-                if name and dataset_name == name: break
+            dataset = download_hf_datasets(
+                dataset_link, 
+                save_path=save_path
+            )
+            add_dataset_to_dictionary(dataset, dataset_name)
+            logger.info(f"{dataset_name} status: Downloaded")
+            
+            if name and dataset_name == name: break
 
 
 
@@ -157,11 +158,10 @@ def process_hf_datasets(name=None, task=None):
     logger.info("execution time: %s seconds " % (time.time() - start_time))
 
     print("Formatting acquired datasets...")
-    for dataset in acquired_datasets:
-        print(dataset)
+    for name, dataset in DATASET_DICTIONAY.items():
+        ...
+        # ~ print(f"{name}: {dataset}")
         # ~ format(dataset, task, TASK_INFO)
-
-    return acquired_datasets
 
 
 if __name__ == "__main__":

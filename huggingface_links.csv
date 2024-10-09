@@ -3,9 +3,6 @@ NER,wikineural ,https://huggingface.co/datasets/Babelscape/wikineural
 NER,nermud,https://huggingface.co/datasets/sapienzanlp/nermud
 NER,wikiann,https://huggingface.co/datasets/unimelb-nlp/wikiann
 NER,multiconer,https://huggingface.co/datasets/MultiCoNER/multiconer_v2
-NER,psynit,https://huggingface.co/datasets/IVN-RIN/PsyNIT
-NER,gliner,https://huggingface.co/datasets/DeepMount00/GLINER_ITA
-NER,pii-masking,https://huggingface.co/datasets/DeepMount00/pii-masking-ita
 NER,eventnet,https://huggingface.co/datasets/mrovera/eventnet-ita
 NER,xtreme,https://huggingface.co/datasets/google/xtreme
 MT,tatoeba,https://huggingface.co/datasets/Helsinki-NLP/tatoeba
@@ -63,7 +60,6 @@ CR,ita_cw,https://huggingface.co/datasets/Kamyar-zeinalipour/ITA_CW
 GEC,icola,https://huggingface.co/datasets/gsarti/itacola
 TRS,tapaco,https://huggingface.co/datasets/community-datasets/tapaco
 TRS,stsb,https://huggingface.co/datasets/PhilipMay/stsb_multi_mt
-TRS,change-it,https://huggingface.co/datasets/gsarti/change_it
 TRS,ita2medieval,https://huggingface.co/datasets/leobertolazzi/ita2medieval 
 TRS,shp,https://huggingface.co/datasets/efederici/shp-partial-it?row=1
 WRITING,camoscio,https://huggingface.co/datasets/teelinsan/camoscio?row=3
@@ -75,6 +71,5 @@ WRITING,medquaad-it,https://huggingface.co/datasets/andreabac3/MedQuaAD-Italian-
 WRITING,seeweb-it,https://huggingface.co/datasets/seeweb/Seeweb-it-292-forLLM
 WRITING,camoscio_cleaned,https://huggingface.co/datasets/teelinsan/camoscio_cleaned
 WRITING,italian_civil_code,https://huggingface.co/datasets/AndreaSimeri/Italian_Civil_Code
-WRITING,italian-pd,https://huggingface.co/datasets/PleIAs/Italian-PD
 WRITING,tagengo,https://huggingface.co/datasets/RiTA-nlp/tagengo-gpt4-italian
 WRITING,usenet archive it ,https://huggingface.co/datasets/mii-community/UsenetArchiveIT-conversations
