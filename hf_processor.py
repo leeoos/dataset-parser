@@ -1,10 +1,11 @@
 #!/usr/bin/env python
 
-# general imports 
+# general imports
 import os
 import sys
 import shutil
 import argparse
+import logging
 # from git import Repo
 
 # data manipulations
@@ -14,15 +15,26 @@ import pandas as pd
 import numpy as np
 
 
-def format(dataset, task, dataset_info=None): 
-    
-    # Select the appropriate task 
-    if task.upper() == 'NER':
-        format_ner()
+def format(dataset, name, task, task_info=None, logger=None):
+    # Select the appropriate task
+    print(task)
+    logger.info(f"Processing dataset for task {task.upper()}")
+    if task.upper() == "NER":
+        logger.info(f"Processing dataset for task {task.upper()}")
+        format_ner(dataset, name, task_info)
+        
+
+def format_ner(dataset, name, task_info):
+    data = {}
+    with open(task_info, "r") as file:
+        data = json.load(file)
+
+    tags = data[name]["tags"]
+
+    print(tags)
+    print(dataset)
 
 
-def format_ner(dataset, dataset_info):
-    ...
 #
 # def move_data(data, dest="results"):
 #   """Just to move the final dtaset in the destination folder and once again avoid pushing large files."""
@@ -64,7 +76,7 @@ def format_ner(dataset, dataset_info):
 #       else:
 #         # add with space
 #         result += " " + word
-#       # keep track of previous word  
+#       # keep track of previous word
 #       prev = word
 #
 #     return result
@@ -86,7 +98,7 @@ def format_ner(dataset, dataset_info):
 #       label = ent[1]
 #
 #       json_dict ={
-#         "sentence_id": sentence_id, 
+#         "sentence_id": sentence_id,
 #         "text": sentence_text,
 #         "target_entity": entity_name,
 #         "choices": choices,
@@ -140,11 +152,11 @@ def format_ner(dataset, dataset_info):
 #     # reset sentence indices
 #     dataset_splits[dsplit] = 0
 #
-#   for i, data in enumerate(df.itertuples()): 
+#   for i, data in enumerate(df.itertuples()):
 #
 #     # keep track of the next item in the dataset
 #     if (i + 1) < len(df):
-#       next = df.iloc[i + 1] 
+#       next = df.iloc[i + 1]
 #       if pd.isna(next.label):
 #         next_tag = "stop"
 #       else:
@@ -218,7 +230,7 @@ def format_ner(dataset, dataset_info):
 #
 #       # same sentence
 #       else:
-#         ... # do nothing, somethimes is important to do nothing and just relax  
+#         ... # do nothing, somethimes is important to do nothing and just relax
 #
 #     else:
 #       tag = data.label[0]
@@ -238,7 +250,7 @@ def format_ner(dataset, dataset_info):
 #       if (tag == "B" and previous["tag"] in ["B", "I"]):
 #         # save previous entity
 #         entity = update_entity(entities, entity, label=labels_map[previous["label"]], DEBUG=DEBUG)
-#         # go on 
+#         # go on
 #         entity.append(data.word)
 #
 #       elif (tag == "O"  and previous["tag"] in ["B", "I"]):
@@ -248,7 +260,7 @@ def format_ner(dataset, dataset_info):
 #       elif (tag == "B" and previous["tag"] not in ["B", "I"]) or \
 #           (tag == "I" and previous["tag"] in ["B", "I"]) :
 #         # go on
-#         entity.append(data.word) 
+#         entity.append(data.word)
 #
 #       else:
 #         ... # do nothing
@@ -263,7 +275,7 @@ def format_ner(dataset, dataset_info):
 #
 #     if DEBUG:
 #       print(data.Index, end=" ")
-#       print(data.word, end=" ") 
+#       print(data.word, end=" ")
 #       print(data.label)
 #       print(f"next label --> {next.label}")
 #
@@ -271,14 +283,14 @@ def format_ner(dataset, dataset_info):
 #
 #
 # # MAIN
-# if __name__ == '__main__' : 
+# if __name__ == '__main__' :
 #
 #   # set up command line args
 #   parser = argparse.ArgumentParser(description='Dataset Manipulation')
 #   parser.add_argument('--debug', '-d', action='store_true')
 #   parser.add_argument('--single', '-s', action='store_true')
 #   args = parser.parse_args()
-#   DEBUG = args.debug 
+#   DEBUG = args.debug
 #   SINGLE = args.single
 #
 #   # global variables
@@ -299,7 +311,7 @@ def format_ner(dataset, dataset_info):
 #       dataset = dtype + "_" + dsplit +".tsv"
 #       if not os.path.exists(data_dir + dataset):
 #         data_url = "https://github.com/dhfbk/KIND/raw/main/evalita-2023/" + dataset
-#         wget.download(url=data_url, out=data_dir+dataset, bar=progress_bar)    
+#         wget.download(url=data_url, out=data_dir+dataset, bar=progress_bar)
 #         print()
 #       else:
 #         print(f"Dataset: {dataset} already present")
@@ -316,7 +328,7 @@ def format_ner(dataset, dataset_info):
 #   for dtype in dataset_types:
 #     for dsplit in  dataset_splits.keys():
 #       dataset = dtype + "_" + dsplit +".tsv"
-#       # save multiple jsonl files for each dataset 
+#       # save multiple jsonl files for each dataset
 #       if SINGLE:
 #         output_json = "NERMuD_" + dsplit + ".jsonl"
 #         check_dtype = False

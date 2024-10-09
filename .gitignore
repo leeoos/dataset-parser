@@ -2,6 +2,7 @@
 logs/
 local_cache/
 *:Zone.Identifier
+*.geany
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
